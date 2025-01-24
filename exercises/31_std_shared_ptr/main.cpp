@@ -32,14 +32,14 @@ int main(int argc, char **argv) {
     ASSERT(observer.use_count() == 2, "");
 
     shared = observer.lock();
-    ASSERT(observer.use_count() == 0, "");
+    ASSERT(observer.use_count() == 3, "");
 
     shared = nullptr;
     for (auto &ptr : ptrs) ptr = nullptr;
-    ASSERT(observer.use_count() == 3, "");
+    ASSERT(observer.use_count() == 0, "");
 
     shared = observer.lock();
-    ASSERT(observer.use_count() == 3, "");
+    ASSERT(observer.use_count() == 0, "");
 
     return 0;
 }

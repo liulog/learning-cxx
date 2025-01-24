@@ -15,11 +15,11 @@ public:
     }
 
     // TODO: 实现复制构造器
-    DynFibonacci(DynFibonacci const &to){
-        to.cache = new size_t[sizeof(cache)/sizeof(size_t)];
-        for(int i=0; i<sizeof(cache)/sizeof(size_t); i++)
-            to.cache[i]=cache[i];
-        to.cached=this->cached;
+    DynFibonacci(DynFibonacci const &to){   /* 这个题不太好, 容量未知, 不容易计算 */
+        this->cached=to.cached;
+        this->cache = new size_t[to.cached];
+        for(int i=0; i<cached; i++)
+            this->cache[i]=to.cache[i];
     };
 
     // TODO: 实现析构器，释放缓存空间

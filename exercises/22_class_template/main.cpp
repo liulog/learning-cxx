@@ -1,4 +1,6 @@
 ﻿#include "../exercise.h"
+#include <vector>
+#include <cstring>
 
 // READ: 类模板 <https://zh.cppreference.com/w/cpp/language/class_template>
 
@@ -10,8 +12,12 @@ struct Tensor4D {
     Tensor4D(unsigned int const shape_[4], T const *data_) {
         unsigned int size = 1;
         // TODO: 填入正确的 shape 并计算 size
+        for(int i=0; i<4; i++){
+            shape[i]=shape_[i];
+            size*=shape_[i];
+        }
         data = new T[size];
-        std::memcpy(data, data_, size * sizeof(T));
+        memcpy(data, data_, size * sizeof(T));
     }
     ~Tensor4D() {
         delete[] data;
@@ -28,9 +34,65 @@ struct Tensor4D {
     // 则 `this` 与 `others` 相加时，3 个形状为 `[1, 2, 1, 4]` 的子张量各自与 `others` 对应项相加。
     Tensor4D &operator+=(Tensor4D const &others) {
         // TODO: 实现单向广播的加法
+        
+        // 计算 others 的步长（stride）
+        size_t others_strides[4];
+        others_strides[3] = 1;
+        for (int i = 2; i >= 0; --i) {
+            others_strides[i] = others_strides[i + 1] * others.shape[i + 1];
+        }
+        
+        // 遍历 this 的每个元素
+        for (unsigned int i = 0; i < shape[0]; ++i) {
+            for (unsigned int j = 0; j < shape[1]; ++j) {
+                for (unsigned int k = 0; k < shape[2]; ++k) {
+                    for (unsigned int l = 0; l < shape[3]; ++l) {
+                        // 计算 this 的线性索引
+                        size_t this_index = i * shape[1] * shape[2] * shape[3] +
+                                            j * shape[2] * shape[3] +
+                                            k * shape[3] +
+                                            l;
+                        // 计算 others 的索引
+                        size_t others_index = (others.shape[0] == 1 ? 0 : i) * others_strides[0] +
+                                              (others.shape[1] == 1 ? 0 : j) * others_strides[1] +
+                                              (others.shape[2] == 1 ? 0 : k) * others_strides[2] +
+                                              (others.shape[3] == 1 ? 0 : l) * others_strides[3];
+                        data[this_index] += others.data[others_index];
+                    }
+                }
+            }
+        }
         return *this;
     }
 };
+
+// 打印 Tensor4D 的内容
+template<class T>
+void printTensor4D(const Tensor4D<T> &tensor, const std::string &name) {
+    std::cout << "Tensor4D " << name << " (shape: ["
+              << tensor.shape[0] << ", "
+              << tensor.shape[1] << ", "
+              << tensor.shape[2] << ", "
+              << tensor.shape[3] << "]):\n";
+
+    for (unsigned int i = 0; i < tensor.shape[0]; ++i) {
+        for (unsigned int j = 0; j < tensor.shape[1]; ++j) {
+            for (unsigned int k = 0; k < tensor.shape[2]; ++k) {
+                for (unsigned int l = 0; l < tensor.shape[3]; ++l) {
+                    size_t index = i * tensor.shape[1] * tensor.shape[2] * tensor.shape[3] +
+                                   j * tensor.shape[2] * tensor.shape[3] +
+                                   k * tensor.shape[3] +
+                                   l;
+                    std::cout << tensor.data[index] << " ";
+                }
+                std::cout << "\n";
+            }
+            std::cout << "----\n";
+        }
+        std::cout << "========\n";
+    }
+    std::cout << "\n";
+}
 
 // ---- 不要修改以下代码 ----
 int main(int argc, char **argv) {
